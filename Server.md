@@ -1,6 +1,6 @@
 This is intended to assist in the creation of a remote access Wireguard VPN server on a Debian based VPS.
-This VPN can be used to route internet traffic as well as act as a remote access to private networks.
-During this process, as a 'newbie' with networking, the pain was real.
+This VPN can be used for remote access to private networks. AKA Your home network
+During this process, as a 'newbie' with networking, I did learn quite a lot, however, the pain was real.
 
 
 1. Create a Debian based VPS. Try not to forget the password, Preeny.
@@ -221,6 +221,25 @@ wg-quick down wg0
 wg-quick up wg0
 ```
 
+***
+***
+***
+
+Once you have added a peer, for remote access to a private network, you need to add the allowed IP's  to the interface config.
+```bash
+[Interface]
+Address = 10.99.99.1/24
+ListenPort = 50000
+PrivateKey = [server private key]
+
+[Peer]
+# Connection From JimBob
+AllowedIPs = 10.99.99.2/32, 192.168.1.1/24
+PublicKey = [peer public key]
+```
+In the peer section, you can see that the allowed IPs list the network that will be routable over the VPN. In this case the IPs 192.168.1.1 - 255 will be routable.
+Note that you can't have the same IP range on multiple peers. So If you want to use this as a site-to-site VPN you will need to plan the IP ranges on the provate networks.
+Remember: After any change to the config, you need to restart Wireguard for it to take effect.
 
 
 
