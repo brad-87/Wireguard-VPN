@@ -19,12 +19,17 @@ apt install wireguard iftop net-tools htop -y
 We need to turn on packet forwarding
 
 ```bash
-nano /etc/ufw/sysctl.conf
+nano /etc/sysctl.conf
 ```
 
-Uncomment this line. You may need to reboot after this, I'm not 100% sure
+Uncomment this line.
 ```bash
 net.ipv4.ip_forward=1
+```
+
+Apply changes.
+```bash
+sysctl -p
 ```
 
 ***
@@ -42,9 +47,13 @@ MTU = 1420
 
 [Peer]
 PublicKey = ***************************************
-AllowedIPs = 10.99.99.1/24
+AllowedIPs = 10.99.99.1/24, [CIDR for the external private networks you want to reach]
 Endpoint = [VPN SRV IP]:50000
 PersistentKeepalive = 20
+```
+Start the interface
+```bash
+systemctl enable --now wg-quick@wg0
 ```
 ***
 ***
@@ -61,7 +70,7 @@ iptables -A FORWARD -i wg0 -o eth0 -m state --state RELATED,ESTABLISHED -j ACCEP
 iptables -A FORWARD -i eth0 -o wg0 -m state --state RELATED,ESTABLISHED -j ACCEPT
 iptables -A OUTPUT -o wg0 -j ACCEPT
 
-iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 
 ```
 ***
@@ -69,6 +78,13 @@ So the main problem with IP Tables is that if you reboot the device, you loose t
 ```bash
 apt install iptables-persistent
 iptables-save > /etc/iptables/rules.v4
+```
+***
+***
+If you change anything in the Wireguard config file, you will need to load changed by stopping then starting the connection.
+```bash
+wg-quick down wg0
+wg-quick up wg0
 ```
 ***
 ***
